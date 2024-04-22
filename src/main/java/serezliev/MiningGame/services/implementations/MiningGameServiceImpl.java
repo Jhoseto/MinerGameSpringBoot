@@ -18,6 +18,7 @@ public class MiningGameServiceImpl implements MiningGameService {
     private int totalResourcesInMine = 0;
     private final List<Worker> workers = new ArrayList<>();
 
+
     @Override
     public List<Worker> getWorkers() {
         return workers;
@@ -26,8 +27,7 @@ public class MiningGameServiceImpl implements MiningGameService {
     @Override
     public void addWorker() {
         if (workers.size() < MAX_MINE_SIZE) {
-            int newWorkerId = workers.size() + 1;
-            Worker newWorker = new WorkerImpl(newWorkerId);
+            Worker newWorker = new WorkerImpl();
             workers.add(newWorker);
             executor.submit((Runnable) newWorker);
         }

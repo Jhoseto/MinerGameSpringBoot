@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>Miners Game</title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/miners.css}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="/webjars/sockjs-client/1.1.2/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/2.3.3/stomp.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -36,16 +36,14 @@
         </form>
     </div>
 
-    <div class="game-board">
-        <div th:each="miner : ${workers}" class="miner">
-            <div class="miner-info">
-                <p>Miner ID: <span th:text="${miner.id}"></span></p>
-                <p>Status: <span th:text="${miner.isStopped ? 'Inactive' : 'Active'}"></span></p>
-                <p>Total Mined Resources: <span th:text="${miner.totalMinedResources}"></span></p>
-                <p>Total Received Money ($): <span th:text="${miner.totalReceivedMoney}"></span></p>
-            </div>
-            <div class="miner-avatar"></div>
+    <div th:each="worker : ${workers}" class="miner">
+        <div class="miner-info">
+            <p>Miner ID: <span th:text="${worker.id}"></span></p>
+            <p>Status: <span th:text="${worker.stopped ? 'Inactive' : 'Active'}"></span></p>
+            <p>Total Mined Resources: <span th:text="${worker.totalMinedResources}"></span></p>
+            <p>Total Received Money ($): <span th:text="${worker.totalReceivedMoney}"></span></p>
         </div>
+        <div class="miner-avatar"></div>
     </div>
 
     <div class="game-timer">
@@ -56,31 +54,7 @@
 </div>
 <script src="/js/miner.js"></script>
 <script>
-    var stompClient = null;
 
-    function connect() {
-        var socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
-        stompClient.connect({}, function(frame) {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/workers', function(workers) {
-                updateWorkers(JSON.parse(workers.body));
-            });
-        });
-    }
-
-
-    // Функция за добавяне на съобщение към монитора
-    function addActionMessage(message) {
-        var actionMonitor = document.getElementById('actionMonitor');
-        var messageElement = document.createElement('p');
-        messageElement.textContent = message;
-        actionMonitor.appendChild(messageElement);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        connect();
-    });
 </script>
 
 </body>

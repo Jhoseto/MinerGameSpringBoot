@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import serezliev.MiningGame.components.GameParameters;
 import serezliev.MiningGame.services.MiningGameService;
 import serezliev.MiningGame.services.Worker;
 
@@ -51,8 +52,13 @@ public class MiningGameController {
     }
 
     @PostMapping("/start")
-    public ResponseEntity<Map<String, Object>> startGame(@RequestParam int initialMineResources,
-                                                         @RequestParam int initialWorkers) {
+    public ResponseEntity<Map<String, Object>> startGame(@RequestBody GameParameters gameParams) {
+        // Тук GameParameters е POJO клас, който представя JSON данните от заявката
+        int initialMineResources = gameParams.getInitialMineResources();
+        int initialWorkers = gameParams.getInitialWorkers();
+
+        System.out.println("Received initialMineResources: " + initialMineResources);
+        System.out.println("Received initialWorkers: " + initialWorkers);
         // Стартиране на играта с подадените параметри
         miningGameService.startGame(initialMineResources, initialWorkers);
 
@@ -66,7 +72,9 @@ public class MiningGameController {
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("message", "Game started");
         responseData.put("workers", workers);
+        responseData.put("status", "success");
 
+        System.out.println(responseData);
         // Връщане на ResponseEntity с данните към фронтенда
         return ResponseEntity.ok(responseData);
     }

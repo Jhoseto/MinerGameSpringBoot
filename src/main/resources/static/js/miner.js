@@ -89,7 +89,7 @@ function startGame(event) {
 }
 
 function stopGame() {
-    fetch('/stop-game', {
+    fetch('/stop', {
         method: 'POST'
     })
         .then(response => {

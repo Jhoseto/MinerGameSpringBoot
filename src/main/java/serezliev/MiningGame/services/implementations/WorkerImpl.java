@@ -1,12 +1,15 @@
 package serezliev.MiningGame.services.implementations;
 
+import org.springframework.stereotype.Service;
 import serezliev.MiningGame.services.Worker;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-
+@Service
 public class WorkerImpl implements Worker, Runnable {
 
+    private static final AtomicInteger idGenerator = new AtomicInteger(1);
     private final int id;
     private int totalMinedResources;
     private int totalReceivedMoney;
@@ -17,10 +20,10 @@ public class WorkerImpl implements Worker, Runnable {
     private MiningGameServiceImpl miningGameService;
 
 
-
-    public WorkerImpl(int id) {
-        this.id = id;
+    public WorkerImpl() {
+        this.id = idGenerator.getAndIncrement();
     }
+
 
     @Override
     public void run() {

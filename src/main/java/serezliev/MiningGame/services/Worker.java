@@ -1,5 +1,8 @@
 package serezliev.MiningGame.services;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public interface Worker {
 
     int getId();
