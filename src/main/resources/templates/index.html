@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Miners Game</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/miners.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Miners Game</h1>
+    <div class="game-controls">
+        <form id="startGameForm" onsubmit="startGame(event)">
+            <label for="totalResources">Total Resources in Mine:</label>
+            <input type="number" id="totalResources" name="totalResources" min="1" step="1">
+
+            <label for="initialMiners">Initial Number of Miners:</label>
+            <input type="number" id="initialMiners" name="initialMiners" min="1" step="1">
+
+            <button type="submit">Start Game</button>
+        </form>
+
+        <form th:action="@{/mining-game/stop}" method="post" onsubmit="event.preventDefault(); stopGame();">
+            <button type="submit">Stop Game</button>
+        </form>
+
+        <form th:action="@{/mining-game/workers/add}" method="post">
+            <button type="submit">Add Miner</button>
+        </form>
+
+        <form th:action="@{/mining-game/workers/remove/{workerId}(workerId=${removeMinerId})}" method="post">
+            <label for="removeMinerId">Remove Miner ID:</label>
+            <input type="number" id="removeMinerId" name="workerId" min="1" step="1">
+            <button type="submit">Remove Miner</button>
+        </form>
+    </div>
+
+    <div class="game-board">
+        <div th:each="miner : ${workers}" class="miner">
+            <div class="miner-info">
+                <p>Miner ID: <span th:text="${miner.id}"></span></p>
+                <p>Status: <span th:text="${miner.isStopped ? 'Inactive' : 'Active'}"></span></p>
+                <p>Total Mined Resources: <span th:text="${miner.totalMinedResources}"></span></p>
+                <p>Total Received Money ($): <span th:text="${miner.totalReceivedMoney}"></span></p>
+            </div>
+            <div class="miner-avatar"></div>
+        </div>
+    </div>
+
+    <div class="game-timer">
+        <p>Game Timer:</p>
+        <div id="gameTimer">00:00:00</div>
+    </div>
+    <div id="actionMonitor"></div>
+</div>
+<script src="/js/miner.js"></script>
+<script>
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/workers', function(workers) {
+                updateWorkers(JSON.parse(workers.body));
+            });
+        });
+    }
+
+
+    // Функция за добавяне на съобщение към монитора
+    function addActionMessage(message) {
+        var actionMonitor = document.getElementById('actionMonitor');
+        var messageElement = document.createElement('p');
+        messageElement.textContent = message;
+        actionMonitor.appendChild(messageElement);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        connect();
+    });
+</script>
+
+</body>
+</html>
