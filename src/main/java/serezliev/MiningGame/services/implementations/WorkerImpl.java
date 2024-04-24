@@ -41,13 +41,15 @@ public class WorkerImpl implements Worker, Runnable {
                     mineExhausted = true;
                     break;
                 }
-                startMining();
-                TimeUnit.SECONDS.sleep(5);
-                stopMining();
-                startResting();
-                TimeUnit.SECONDS.sleep(3);
-                paySalary();
-                stopResting();
+                if (!miningGameService.isPaused()){
+                    startMining();
+                    TimeUnit.SECONDS.sleep(5);
+                    stopMining();
+                    startResting();
+                    TimeUnit.SECONDS.sleep(3);
+                    paySalary();
+                    stopResting();
+                }
             }
         } catch (InterruptedException e) {
             System.out.println("Worker " + id + " has left");

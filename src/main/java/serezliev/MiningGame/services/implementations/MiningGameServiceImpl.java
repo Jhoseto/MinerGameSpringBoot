@@ -16,10 +16,12 @@ import java.util.concurrent.Executors;
 public class MiningGameServiceImpl implements MiningGameService {
 
     private static final int MAX_MINE_SIZE = 10;
-    private static final ExecutorService executor = Executors.newFixedThreadPool(MAX_MINE_SIZE);
+    private static ExecutorService executor = Executors.newFixedThreadPool(MAX_MINE_SIZE);
     private int totalResourcesInMine = 0;
     private final List<Worker> workers = new ArrayList<>();
     private final SimpMessagingTemplate messagingTemplate;
+    private volatile boolean paused = false;
+
 
     @Autowired
     public MiningGameServiceImpl(SimpMessagingTemplate messagingTemplate) {
@@ -68,16 +70,26 @@ public class MiningGameServiceImpl implements MiningGameService {
     @Override
     public void startGame(int initialMineResources, int initialWorkers) {
         this.totalResourcesInMine = initialMineResources;
-        for (int i = 1; i <= initialWorkers; i++) {
-            addWorker();
+        if (paused) {
+            paused = false; // Ако играта е паузирана, я продължаваме
+        }else {
+            for (int i = 1; i <= initialWorkers; i++) {
+                addWorker();
+            }
         }
     }
 
     @Override
     public void stopGame() {
+        pauseGame();
+    }
+
+    @Override
+    public void restartGame() {
         executor.shutdownNow();
-        List<Worker> workers = getWorkers();
         workers.clear();
+        executor = Executors.newFixedThreadPool(MAX_MINE_SIZE);
+        broadcastWorkers();
     }
 
     public int getTotalResourcesInMine() {
@@ -93,4 +105,20 @@ public class MiningGameServiceImpl implements MiningGameService {
         List<Worker> workers = getWorkers();
         messagingTemplate.convertAndSend("/topic/workers", workers);
     }
+
+    @Override
+    public boolean isPaused() {
+        return paused;
+    }
+
+    @Override
+    public void pauseGame() {
+        paused = true;
+    }
+
+    @Override
+    public void resumeGame() {
+        paused = false;
+    }
+
 }

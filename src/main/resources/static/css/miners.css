@@ -8,12 +8,12 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
     background-color: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 h1 {
@@ -37,6 +37,7 @@ h1 {
     display: flex;
     align-items: center;
     margin-bottom: 10px; /* Отстояние между формите */
+    margin-left: 40px;
 }
 
 /* Стилове за етикетите във формите */
@@ -54,6 +55,7 @@ h1 {
 /* Стилове за бутоните във формите */
 
 .game-controls form button {
+    margin-left: 10px;
     background-color: #4CAF50;
     color: #fff;
     cursor: pointer;
@@ -78,6 +80,8 @@ h1 {
 }
 
 #gameTimer {
+    margin-right: 10px;
+    margin-left: 10px;
     font-size: 18px;
     font-weight: bold;
     color: #333;
@@ -93,7 +97,7 @@ h1 {
     border: 1px solid #4CAF50;
     padding: 10px;
     margin-top: 20px;
-    max-height: 70px;
+    max-height: 110px;
     overflow-y: auto;
     background-color: #f9f9f9;
 }
@@ -111,20 +115,24 @@ h1 {
 }
 
 .worker-panel {
+    border: 1px solid #4CAF50;
     display: flex;
-    align-items: center;
+    flex: 0 0 calc(33.33% - 20px); /* Разделяне на контейнерите на по 3 в ред */
+    /* Ширината е 33.33% от родителския контейнер (минус 20px за отстоянията) */
+    box-sizing: border-box; /* Включване на padding и border в общата широчина */
     padding: 10px;
     margin-right: 10px;
-    margin-bottom: 10px;
+    margin-top: 10px;
     background-color: #f9f9f9;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .miner-info {
+    display: flex;
     width: 60px;
     height: 60px;
-    background-image: url('http://localhost:8080/static/images/miner.gif');
+    background-image: url('../images/miner.gif');
     background-size: cover;
     border-radius: 50%;
     margin-right: 20px;
@@ -134,6 +142,8 @@ h1 {
     flex-grow: 1;
     font-size: 14px;
     color: #333;
+    display: flex;
+    flex-direction: column; /* Поставя информацията една под друга */
 }
 
 .worker-info p {
@@ -145,3 +155,4 @@ h1 {
 .worker-info p:first-child {
     font-weight: bold;
 }
+

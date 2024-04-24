@@ -1,5 +1,6 @@
 var stompClient = null;
 var gameTimerInterval = null;
+var totalSeconds = 0; // Общ брой изминали секунди
 
 document.addEventListener('DOMContentLoaded', function() {
     connect();
@@ -65,14 +66,21 @@ function updatePageAndWorkers(data) {
             workerPanel.id = `workerPanel-${id}`;
             workerPanel.className = 'worker-panel';
 
+            // Създаване на снимка за работника
+            var minerInfoDiv = document.createElement('div');
+            minerInfoDiv.className = 'miner-info';
+
+            workerPanel.appendChild(minerInfoDiv);
+
+            // Създаване на информация за работника
             var workerInfoDiv = document.createElement('div');
             workerInfoDiv.className = 'worker-info';
             workerInfoDiv.innerHTML = `
-                <p>Miner ID: ${id}</p>
+                <p>Miner: ${id}</p>
                 <p>Status: ${status}</p>
                 <p>Total Mined Resources: ${totalMinedResources}</p>
                 <p>Total Received Money ($): ${totalReceivedMoney}</p>
-                <p>Action Message: ${actionMessage}</p>    
+                <p>Action: ${actionMessage}</p>    
             `;
 
             workerPanel.appendChild(workerInfoDiv);
@@ -89,12 +97,12 @@ function updatePageAndWorkers(data) {
         }
         // Актуализиране на оставащите ресурси
         if (leftResourcesElement) {
-
             leftResourcesElement.textContent = `Total Resources Left: ${totalResourcesLeft}`;
         }
-        addActionMessage(actionMessage)
+        addActionMessage(actionMessage);
     });
 }
+
 
 
 function addActionMessage(message) {
@@ -103,15 +111,14 @@ function addActionMessage(message) {
         console.error('Action monitor element not found.');
         return;
     }
-
     var messageElement = document.createElement('p');
     messageElement.textContent = message;
     actionMonitor.appendChild(messageElement);
-
+    // Добавете новият <br> елемент след добавянето на съобщението
     var newlineElement = document.createElement('br');
     actionMonitor.appendChild(newlineElement);
+    // Променете скролирането на actionMonitor, за да бъде на последния ред
     actionMonitor.scrollTop = actionMonitor.scrollHeight;
-
 }
 
 function startGame() {
@@ -172,14 +179,47 @@ function stopGame() {
         });
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавете слушател за натискане на бутона за рестартиране на играта
+    document.getElementById('restartGameButton').addEventListener('click', function() {
+        restartGame();
+    });
+});
+
+function restartGame() {
+    // Изпращане на заявка за рестартиране на играта
+    fetch('/mining-game/restart', {
+        method: 'POST'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to restart game...');
+            }
+            // Редирект към началната страница след успешно рестартиране на играта
+            window.location.href = '/'; // Променете URL според вашите нужди
+            addActionMessage("The Game is restarted...")
+        })
+        .catch(error => {
+            console.error('Error restarting game:', error);
+            addActionMessage('Failed to restart game...');
+        });
+}
+
+
 function startTimer() {
-    var seconds = 0;
     gameTimerInterval = setInterval(function() {
-        seconds++;
-        var formattedTime = new Date(seconds * 1000).toISOString().substr(11, 8);
-        document.getElementById('gameTimer').innerText = formattedTime;
+        totalSeconds++;
+        updateTimerDisplay();
     }, 1000);
 }
+
+
+function updateTimerDisplay() {
+    var formattedTime = new Date(totalSeconds * 1000).toISOString().substr(11, 8);
+    document.getElementById('gameTimer').innerText = formattedTime;
+}
+
+
 
 function addMiner() {
     fetch('/mining-game/workers/add', {

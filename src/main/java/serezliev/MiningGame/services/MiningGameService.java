@@ -15,7 +15,15 @@ public interface MiningGameService {
 
     void stopGame();
 
+    void restartGame();
+
     int getTotalResourcesInMine();
 
     void broadcastWorkers();
+
+    boolean isPaused();
+
+    void pauseGame();
+
+    void resumeGame();
 }

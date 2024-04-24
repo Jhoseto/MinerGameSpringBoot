@@ -1,6 +1,7 @@
 package serezliev.MiningGame.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,10 @@ public class MiningGameController {
 
     @PostMapping("/start")
     public ResponseEntity<Map<String, Object>> startGame(@RequestBody GameParameters gameParams) {
+        if (miningGameService.isPaused()){
+            miningGameService.resumeGame();
+
+        }
         int initialMineResources = gameParams.getInitialMineResources();
         int initialWorkers = gameParams.getInitialWorkers();
 
@@ -63,6 +68,19 @@ public class MiningGameController {
         miningGameService.stopGame();
         miningGameService.broadcastWorkers();
         return ResponseEntity.ok("Game stopped");
+    }
+
+    @PostMapping("/restart")
+    public ResponseEntity<String> restartGame() {
+        try {
+            // Извикване на метода за рестартиране на играта от сървиса
+            miningGameService.stopGame();
+            miningGameService.restartGame();
+            return ResponseEntity.ok("Game restarted successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to restart game.");
+        }
     }
 
 }
