@@ -97,6 +97,9 @@ h1 {
     overflow-y: auto;
     background-color: #f9f9f9;
 }
+.actionMonitor p {
+    margin: 0; /* Премахва вътрешния отстъп на параграфите */
+}
 
 /* Стилове за работническите панели */
 

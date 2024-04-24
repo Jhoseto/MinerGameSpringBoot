@@ -29,17 +29,24 @@ document.addEventListener('DOMContentLoaded', function() {
 function connect() {
     var socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
+
     stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame);
+
+        // Subscribe to the workers topic
         stompClient.subscribe('/topic/workers', function(message) {
-            var workers = JSON.parse(message.body);
-            updatePageAndWorkers(workers); // Подаваме цялото съдържание на работниците
+            var workersData = JSON.parse(message.body);
+            updatePageAndWorkers(workersData);
         });
+    }, function(error) {
+        console.error('WebSocket connection error:', error);
     });
 }
 
 function updatePageAndWorkers(data) {
     var workerPanelsContainer = document.getElementById('workerPanelsContainer');
+    var leftResourcesElement = document.getElementById('totalResourcesLeft');
+
     if (!workerPanelsContainer) {
         console.error('Worker panels container not found.');
         return;
@@ -47,7 +54,7 @@ function updatePageAndWorkers(data) {
 
     // Итерирайте през данните за всеки работник и създайте/актуализирайте панелите
     data.forEach(worker => {
-        var { id, stopped, totalMinedResources, totalReceivedMoney, actionMessage } = worker;
+        var { id, stopped, totalMinedResources, totalResourcesLeft, totalReceivedMoney, actionMessage } = worker;
         var status = stopped ? 'Inactive' : 'Active';
 
         // Проверка дали панелът за този работник вече съществува
@@ -65,7 +72,7 @@ function updatePageAndWorkers(data) {
                 <p>Status: ${status}</p>
                 <p>Total Mined Resources: ${totalMinedResources}</p>
                 <p>Total Received Money ($): ${totalReceivedMoney}</p>
-                <p>Action Message: ${actionMessage}</p> 
+                <p>Action Message: ${actionMessage}</p>    
             `;
 
             workerPanel.appendChild(workerInfoDiv);
@@ -77,14 +84,17 @@ function updatePageAndWorkers(data) {
                 <p>Status: ${status}</p>
                 <p>Total Mined Resources: ${totalMinedResources}</p>
                 <p>Total Received Money ($): ${totalReceivedMoney}</p>
-                <p>Action --> ${actionMessage}</p> 
-               
+                <p>Action Message: ${actionMessage}</p> 
             `;
-            addActionMessage(actionMessage)
         }
+        // Актуализиране на оставащите ресурси
+        if (leftResourcesElement) {
+
+            leftResourcesElement.textContent = `Total Resources Left: ${totalResourcesLeft}`;
+        }
+        addActionMessage(actionMessage)
     });
 }
-
 
 
 function addActionMessage(message) {
@@ -189,12 +199,23 @@ function addMiner() {
         });
 }
 
-function removeMiner(workerId) {
+function removeMiner() {
+    var workerId = document.getElementById('removeMinerId').value;
+
+    // Проверка дали workerId е валидно число
+    if (!workerId || isNaN(parseInt(workerId))) {
+        console.error('Invalid worker ID:', workerId);
+        return;
+    }
+
+    // Изпращане на заявка за премахване на работник с даден ID
     fetch(`/mining-game/workers/remove/${workerId}`, {
         method: 'POST'
     })
         .then(response => {
+            // Проверка дали отговорът е успешен
             if (!response.ok) {
+                addActionMessage('Failed to remove miner.');
                 throw new Error('Failed to remove miner.');
             }
             return response.text();
@@ -203,6 +224,7 @@ function removeMiner(workerId) {
             console.log(data);
         })
         .catch(error => {
+            addActionMessage('Error removing miner ' + workerId);
             console.error('Error removing miner:', error);
         });
 }

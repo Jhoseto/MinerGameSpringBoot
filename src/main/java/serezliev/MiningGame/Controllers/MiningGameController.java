@@ -2,9 +2,7 @@ package serezliev.MiningGame.Controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import serezliev.MiningGame.components.GameParameters;
 import serezliev.MiningGame.services.MiningGameService;
@@ -19,14 +17,12 @@ import java.util.Map;
 public class MiningGameController {
 
     private final MiningGameService miningGameService;
-    private final SimpMessagingTemplate messagingTemplate;
+
 
     @Autowired
-    public MiningGameController(MiningGameService miningGameService, SimpMessagingTemplate messagingTemplate) {
+    public MiningGameController(MiningGameService miningGameService) {
         this.miningGameService = miningGameService;
-        this.messagingTemplate = messagingTemplate;
     }
-
 
     @PostMapping("/workers/add")
     @ResponseBody
@@ -36,7 +32,7 @@ public class MiningGameController {
         return ResponseEntity.ok("Worker added successfully");
     }
 
-    @DeleteMapping("/workers/remove/{workerId}")
+    @PostMapping("/workers/remove/{workerId}")
     @ResponseBody
     public ResponseEntity<String> removeWorker(@PathVariable int workerId) {
         miningGameService.removeWorker(workerId);

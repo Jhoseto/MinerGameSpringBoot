@@ -11,12 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class WorkerImpl implements Worker, Runnable {
 
-    private static final AtomicInteger idGenerator = new AtomicInteger(1);
+    private static final AtomicInteger idGenerator = new AtomicInteger(0);
     private final int id;
     private int totalMinedResources;
     private int totalReceivedMoney;
     private int totalWorkingTime;
     private int totalRestingTime;
+    private int totalResourcesLeft;
     private String actionMessage;
     private volatile boolean isStopped = false;
     private volatile boolean mineExhausted = false;
@@ -24,7 +25,6 @@ public class WorkerImpl implements Worker, Runnable {
     private final SimpMessagingTemplate messagingTemplate;
 
 
-    // Инжектиране на MiningGameService при създаване на работник
     @Autowired
     public WorkerImpl(MiningGameServiceImpl miningGameService,
                       SimpMessagingTemplate messagingTemplate) {
@@ -32,7 +32,6 @@ public class WorkerImpl implements Worker, Runnable {
         this.id = idGenerator.getAndIncrement();
         this.miningGameService = miningGameService;
     }
-
 
     @Override
     public void run() {
@@ -79,10 +78,19 @@ public class WorkerImpl implements Worker, Runnable {
     public int getTotalRestingTime() {
         return totalRestingTime;
     }
+    @Override
+    public int getTotalResourcesLeft() {
+        return totalResourcesLeft;
+    }
 
     @Override
     public boolean isStopped() {
         return isStopped;
+    }
+
+    @Override
+    public void setStopped(boolean stopped) {
+        isStopped = stopped;
     }
 
     public String getActionMessage() {
@@ -99,6 +107,7 @@ public class WorkerImpl implements Worker, Runnable {
         totalMinedResources += 10;
         totalWorkingTime += 5;
         miningGameService.setTotalResourcesInMine(miningGameService.getTotalResourcesInMine()-10);
+        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         setActionMessage("Worker " + id + " is mining...");
         miningGameService.broadcastWorkers();
     }

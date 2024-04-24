@@ -1,8 +1,5 @@
 package serezliev.MiningGame.services;
 
-import org.springframework.stereotype.Service;
-
-@Service
 public interface Worker {
 
     int getId();
@@ -15,7 +12,11 @@ public interface Worker {
 
     int getTotalRestingTime();
 
+    int getTotalResourcesLeft();
+
     boolean isStopped();
+
+    void setStopped(boolean stopped);
 
     void startMining();
 

@@ -8,6 +8,7 @@ import serezliev.MiningGame.services.Worker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,11 +42,27 @@ public class MiningGameServiceImpl implements MiningGameService {
 
     @Override
     public void removeWorker(int workerId) {
-        workers.stream()
+        // Намиране на работника по даден workerId
+        Optional<Worker> workerToRemove = workers.stream()
                 .filter(worker -> worker.getId() == workerId)
-                .findFirst()
-                .ifPresent(Worker::stopMining);
-        workers.removeIf(worker -> worker.getId() == workerId);
+                .findFirst();
+
+        if (workerToRemove.isPresent()) {
+            Worker worker = workerToRemove.get();
+
+            // Промяна на статуса на работника на isStopped = true
+            worker.setStopped(true);
+
+            // Прекратяване на работника
+            worker.stopWorker();
+
+            // Премахване на работника от списъка
+            workers.remove(worker);
+
+            System.out.println("Worker with ID " + workerId + " has been removed.");
+        } else {
+            System.out.println("Worker with ID " + workerId + " not found.");
+        }
     }
 
     @Override
@@ -59,6 +76,8 @@ public class MiningGameServiceImpl implements MiningGameService {
     @Override
     public void stopGame() {
         executor.shutdownNow();
+        List<Worker> workers = getWorkers();
+        workers.clear();
     }
 
     public int getTotalResourcesInMine() {
@@ -66,7 +85,8 @@ public class MiningGameServiceImpl implements MiningGameService {
     }
 
     public void setTotalResourcesInMine(int totalResourcesInMine) {
-        this.totalResourcesInMine = totalResourcesInMine+10;
+        this.totalResourcesInMine = totalResourcesInMine;
+        System.out.println(totalResourcesInMine+" Left");
     }
 
     public void broadcastWorkers() {
