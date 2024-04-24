@@ -31,16 +31,23 @@ function connect() {
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function(frame) {
         console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/workers', function(workers) {
-            updatePageAndWorkers(JSON.parse(workers.body));
+        stompClient.subscribe('/topic/workers', function(message) {
+            var workers = JSON.parse(message.body);
+            updatePageAndWorkers(workers); // Подаваме цялото съдържание на работниците
         });
-        addActionMessage('Connected to server');
     });
 }
 
 function updatePageAndWorkers(data) {
+    var workerPanelsContainer = document.getElementById('workerPanelsContainer');
+    if (!workerPanelsContainer) {
+        console.error('Worker panels container not found.');
+        return;
+    }
+
+    // Итерирайте през данните за всеки работник и създайте/актуализирайте панелите
     data.forEach(worker => {
-        var { id, stopped, totalMinedResources, totalReceivedMoney } = worker;
+        var { id, stopped, totalMinedResources, totalReceivedMoney, actionMessage } = worker;
         var status = stopped ? 'Inactive' : 'Active';
 
         // Проверка дали панелът за този работник вече съществува
@@ -58,10 +65,11 @@ function updatePageAndWorkers(data) {
                 <p>Status: ${status}</p>
                 <p>Total Mined Resources: ${totalMinedResources}</p>
                 <p>Total Received Money ($): ${totalReceivedMoney}</p>
+                <p>Action Message: ${actionMessage}</p> 
             `;
 
             workerPanel.appendChild(workerInfoDiv);
-            document.querySelector('.container').appendChild(workerPanel);
+            workerPanelsContainer.appendChild(workerPanel);
         } else {
             // Актуализация на съществуващия панел с новата информация
             existingPanel.querySelector('.worker-info').innerHTML = `
@@ -69,12 +77,14 @@ function updatePageAndWorkers(data) {
                 <p>Status: ${status}</p>
                 <p>Total Mined Resources: ${totalMinedResources}</p>
                 <p>Total Received Money ($): ${totalReceivedMoney}</p>
+                <p>Action --> ${actionMessage}</p> 
+               
             `;
+            addActionMessage(actionMessage)
         }
     });
-
-    addActionMessage('Workers data updated successfully.');
 }
+
 
 
 function addActionMessage(message) {
@@ -90,6 +100,8 @@ function addActionMessage(message) {
 
     var newlineElement = document.createElement('br');
     actionMonitor.appendChild(newlineElement);
+    actionMonitor.scrollTop = actionMonitor.scrollHeight;
+
 }
 
 function startGame() {

@@ -1,4 +1,5 @@
-/* Общ стил */
+/* Основни стилове */
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
@@ -20,49 +21,102 @@ h1 {
     color: #333;
 }
 
+/* Стилове за игралните контроли */
+
 .game-controls {
+    display: flex;
+    justify-content: space-between; /* Разпределя контролите равномерно */
+    align-items: center;
+    flex-wrap: wrap; /* Позволява редове да се пренареждат на нов ред */
     margin-bottom: 20px;
 }
 
-label {
-    font-weight: bold;
+/* Стилове за формите в игралните контроли */
+
+.game-controls form {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* Отстояние между формите */
 }
 
-input[type="number"],
-button {
-    margin: 5px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
+/* Стилове за етикетите във формите */
+
+.game-controls form label {
+    margin-right: 10px; /* Отстояние след етикетите */
 }
 
-button {
+/* Стилове за входните полета във формите */
+
+.game-controls form input[type="number"] {
+    margin-right: 10px; /* Отстояние след входните полета */
+}
+
+/* Стилове за бутоните във формите */
+
+.game-controls form button {
     background-color: #4CAF50;
     color: #fff;
     cursor: pointer;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
     transition: background-color 0.3s;
 }
 
-button:hover {
+.game-controls form button:hover {
     background-color: #45a049;
 }
 
-.game-board {
+/* Стилове за таймера на играта */
+
+.game-timer {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.miner {
-    width: 48%;
-    background-color: #f9f9f9;
+#gameTimer {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    padding: 5px 10px;
+    border: 2px solid #4CAF50;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+/* Стилове за монитора за действия */
+
+.actionMonitor {
+    border: 1px solid #4CAF50;
     padding: 10px;
+    margin-top: 20px;
+    max-height: 70px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+/* Стилове за работническите панели */
+
+#workerPanelsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.worker-panel {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-right: 10px;
     margin-bottom: 10px;
+    background-color: #f9f9f9;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 
 .miner-info {
     width: 60px;
@@ -70,24 +124,21 @@ button:hover {
     background-image: url('http://localhost:8080/static/images/miner.gif');
     background-size: cover;
     border-radius: 50%;
+    margin-right: 20px;
 }
 
-#gameTimer {
-    font-size: 18px;
-    font-weight: bold;
+.worker-info {
+    flex-grow: 1;
+    font-size: 14px;
     color: #333;
-    margin-left: 10px;
-    padding: 5px 10px;
-    border: 2px solid #4CAF50;
-    border-radius: 4px;
-    background-color: #fff;
 }
 
-#actionMonitor {
-    border: 1px solid #4CAF50;
-    padding: 10px;
-    margin-top: 10px;
-    max-height: 200px;
-    overflow-y: auto;
-    background-color: #f9f9f9;
+.worker-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.worker-info p:first-child {
+    font-weight: bold;
 }

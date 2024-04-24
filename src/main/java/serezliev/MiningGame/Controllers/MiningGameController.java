@@ -32,7 +32,7 @@ public class MiningGameController {
     @ResponseBody
     public ResponseEntity<String> addWorker() {
         miningGameService.addWorker();
-        broadcastWorkers();
+        miningGameService.broadcastWorkers();
         return ResponseEntity.ok("Worker added successfully");
     }
 
@@ -40,7 +40,7 @@ public class MiningGameController {
     @ResponseBody
     public ResponseEntity<String> removeWorker(@PathVariable int workerId) {
         miningGameService.removeWorker(workerId);
-        broadcastWorkers();
+        miningGameService.broadcastWorkers();
         return ResponseEntity.ok("Worker removed successfully");
     }
 
@@ -50,7 +50,7 @@ public class MiningGameController {
         int initialWorkers = gameParams.getInitialWorkers();
 
         miningGameService.startGame(initialMineResources, initialWorkers);
-        broadcastWorkers();
+        miningGameService.broadcastWorkers();
 
         List<Worker> workers = miningGameService.getWorkers();
 
@@ -65,12 +65,8 @@ public class MiningGameController {
     @PostMapping("/stop")
     public ResponseEntity<String> stopGame() {
         miningGameService.stopGame();
-        broadcastWorkers();
+        miningGameService.broadcastWorkers();
         return ResponseEntity.ok("Game stopped");
     }
 
-    private void broadcastWorkers() {
-        List<Worker> workers = miningGameService.getWorkers();
-        messagingTemplate.convertAndSend("/topic/workers", workers);
-    }
 }

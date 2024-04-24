@@ -1,6 +1,7 @@
 package serezliev.MiningGame.services.implementations;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import serezliev.MiningGame.services.Worker;
 
@@ -16,13 +17,18 @@ public class WorkerImpl implements Worker, Runnable {
     private int totalReceivedMoney;
     private int totalWorkingTime;
     private int totalRestingTime;
+    private String actionMessage;
     private volatile boolean isStopped = false;
     private volatile boolean mineExhausted = false;
     private MiningGameServiceImpl miningGameService;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     // Инжектиране на MiningGameService при създаване на работник
     @Autowired
-    public WorkerImpl(MiningGameServiceImpl miningGameService) {
+    public WorkerImpl(MiningGameServiceImpl miningGameService,
+                      SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
         this.id = idGenerator.getAndIncrement();
         this.miningGameService = miningGameService;
     }
@@ -79,28 +85,42 @@ public class WorkerImpl implements Worker, Runnable {
         return isStopped;
     }
 
+    public String getActionMessage() {
+        return actionMessage;
+    }
+
+    public void setActionMessage(String actionMessage) {
+        this.actionMessage = actionMessage;
+    }
+
     @Override
     public void startMining() {
         System.out.println("Worker " + id + " is mining...");
         totalMinedResources += 10;
         totalWorkingTime += 5;
         miningGameService.setTotalResourcesInMine(miningGameService.getTotalResourcesInMine()-10);
+        setActionMessage("Worker " + id + " is mining...");
+        miningGameService.broadcastWorkers();
     }
 
     @Override
     public void stopMining() {
-        System.out.println("Worker " + id + " has finished mining.");
+        miningGameService.broadcastWorkers();
     }
 
     @Override
     public void startResting() {
         System.out.println("Worker " + id + " is resting...");
         totalRestingTime += 3;
+        messagingTemplate.convertAndSend("/topic/workers", "Worker " + id + " is resting...");
+        setActionMessage( "Worker " + id + " is resting...");
+        miningGameService.broadcastWorkers();
+
     }
 
     @Override
     public void stopResting() {
-        System.out.println("Worker " + id + " has finished resting.");
+        miningGameService.broadcastWorkers();
     }
 
     @Override
@@ -113,5 +133,8 @@ public class WorkerImpl implements Worker, Runnable {
         int salary = 10 / 2; // 2.5 $ for every 5 sec on work
         totalReceivedMoney += salary;
         System.out.println("Worker " + id + " has received $" + salary + " for total " + totalMinedResources + " mined resources");
+        setActionMessage("Worker " + id + " has received $" + salary + " for total " + totalMinedResources + " mined resources");
+        miningGameService.broadcastWorkers();
     }
+
 }

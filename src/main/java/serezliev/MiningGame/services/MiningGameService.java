@@ -16,4 +16,6 @@ public interface MiningGameService {
     void stopGame();
 
     int getTotalResourcesInMine();
+
+    void broadcastWorkers();
 }
