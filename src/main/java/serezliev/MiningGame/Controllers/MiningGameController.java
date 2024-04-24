@@ -28,63 +28,45 @@ public class MiningGameController {
     }
 
 
-    @GetMapping("/index")
-    public String index(Model model) {
-        List<Worker> workers = miningGameService.getWorkers();
-        model.addAttribute("workers", workers);
-        return "index";
-    }
-
     @PostMapping("/workers/add")
     @ResponseBody
-    public String addWorker() {
+    public ResponseEntity<String> addWorker() {
         miningGameService.addWorker();
         broadcastWorkers();
-        return "Worker added successfully";
+        return ResponseEntity.ok("Worker added successfully");
     }
 
     @DeleteMapping("/workers/remove/{workerId}")
     @ResponseBody
-    public String removeWorker(@PathVariable int workerId) {
+    public ResponseEntity<String> removeWorker(@PathVariable int workerId) {
         miningGameService.removeWorker(workerId);
         broadcastWorkers();
-        return "Worker removed successfully";
+        return ResponseEntity.ok("Worker removed successfully");
     }
 
     @PostMapping("/start")
     public ResponseEntity<Map<String, Object>> startGame(@RequestBody GameParameters gameParams) {
-        // Тук GameParameters е POJO клас, който представя JSON данните от заявката
         int initialMineResources = gameParams.getInitialMineResources();
         int initialWorkers = gameParams.getInitialWorkers();
 
-        System.out.println("Received initialMineResources: " + initialMineResources);
-        System.out.println("Received initialWorkers: " + initialWorkers);
-        // Стартиране на играта с подадените параметри
         miningGameService.startGame(initialMineResources, initialWorkers);
-
-        // Излъчване на информация за миньорите след стартиране на играта
         broadcastWorkers();
 
-        // Получаване на актуална информация за работниците (миньорите)
         List<Worker> workers = miningGameService.getWorkers();
 
-        // Подготвяне на данните за връщане на фронтенда
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("message", "Game started");
         responseData.put("workers", workers);
-        responseData.put("status", "success");
+        responseData.put("data", "success");
 
-        System.out.println(responseData);
-        // Връщане на ResponseEntity с данните към фронтенда
         return ResponseEntity.ok(responseData);
     }
 
     @PostMapping("/stop")
-    @ResponseBody
-    public String stopGame() {
+    public ResponseEntity<String> stopGame() {
         miningGameService.stopGame();
         broadcastWorkers();
-        return "Game stopped";
+        return ResponseEntity.ok("Game stopped");
     }
 
     private void broadcastWorkers() {

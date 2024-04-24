@@ -1,4 +1,30 @@
 var stompClient = null;
+var gameTimerInterval = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    connect();
+
+    document.getElementById('startGameForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        startGame();
+    });
+
+    document.getElementById('stopGameForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        stopGame();
+    });
+
+    document.getElementById('addMinerForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        addMiner();
+    });
+
+    document.getElementById('removeMinerForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var removeMinerId = document.getElementById('removeMinerId').value;
+        removeMiner(removeMinerId);
+    });
+});
 
 function connect() {
     var socket = new SockJS('/ws');
@@ -8,56 +34,67 @@ function connect() {
         stompClient.subscribe('/topic/workers', function(workers) {
             updatePageAndWorkers(JSON.parse(workers.body));
         });
+        addActionMessage('Connected to server');
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    connect();
-});
-
 function updatePageAndWorkers(data) {
-    const message = data.message;
-    const workers = data.workers;
+    data.forEach(worker => {
+        var { id, stopped, totalMinedResources, totalReceivedMoney } = worker;
+        var status = stopped ? 'Inactive' : 'Active';
 
-    addActionMessage(message);
+        // Проверка дали панелът за този работник вече съществува
+        var existingPanel = document.getElementById(`workerPanel-${id}`);
+        if (!existingPanel) {
+            // Създаване на нов панел за работника
+            var workerPanel = document.createElement('div');
+            workerPanel.id = `workerPanel-${id}`;
+            workerPanel.className = 'worker-panel';
 
-    if (workers && Array.isArray(workers)) {
-        workers.forEach(worker => {
-            const workerId = worker.id;
-            const status = worker.status;
-            const totalMinedResources = worker.totalMinedResources;
-            const totalReceivedMoney = worker.totalReceivedMoney;
+            var workerInfoDiv = document.createElement('div');
+            workerInfoDiv.className = 'worker-info';
+            workerInfoDiv.innerHTML = `
+                <p>Miner ID: ${id}</p>
+                <p>Status: ${status}</p>
+                <p>Total Mined Resources: ${totalMinedResources}</p>
+                <p>Total Received Money ($): ${totalReceivedMoney}</p>
+            `;
 
-            const workerElement = document.getElementById(`worker-${workerId}`);
-            if (workerElement) {
-                const statusElement = workerElement.querySelector('.status');
-                const minedResourcesElement = workerElement.querySelector('.totalMinedResources');
-                const receivedMoneyElement = workerElement.querySelector('.totalReceivedMoney');
+            workerPanel.appendChild(workerInfoDiv);
+            document.querySelector('.container').appendChild(workerPanel);
+        } else {
+            // Актуализация на съществуващия панел с новата информация
+            existingPanel.querySelector('.worker-info').innerHTML = `
+                <p>Miner ID: ${id}</p>
+                <p>Status: ${status}</p>
+                <p>Total Mined Resources: ${totalMinedResources}</p>
+                <p>Total Received Money ($): ${totalReceivedMoney}</p>
+            `;
+        }
+    });
 
-                if (statusElement && minedResourcesElement && receivedMoneyElement) {
-                    statusElement.innerText = status;
-                    minedResourcesElement.innerText = totalMinedResources;
-                    receivedMoneyElement.innerText = totalReceivedMoney;
-                } else {
-                    console.error(`Worker ${workerId} elements not found.`);
-                }
-            } else {
-                console.error(`Worker ${workerId} element not found.`);
-            }
-        });
-    } else {
-        console.error('Invalid workers data received.');
-    }
+    addActionMessage('Workers data updated successfully.');
 }
 
-function startGame(event) {
-    event.preventDefault();
 
-    const totalResourcesInput = document.getElementById('totalResources');
-    const initialMinersInput = document.getElementById('initialMiners');
+function addActionMessage(message) {
+    var actionMonitor = document.getElementById('actionMonitor');
+    if (!actionMonitor) {
+        console.error('Action monitor element not found.');
+        return;
+    }
 
-    const totalResources = parseInt(totalResourcesInput.value);
-    const initialMiners = parseInt(initialMinersInput.value);
+    var messageElement = document.createElement('p');
+    messageElement.textContent = message;
+    actionMonitor.appendChild(messageElement);
+
+    var newlineElement = document.createElement('br');
+    actionMonitor.appendChild(newlineElement);
+}
+
+function startGame() {
+    var totalResources = parseInt(document.getElementById('totalResources').value);
+    var initialMiners = parseInt(document.getElementById('initialMiners').value);
 
     if (isNaN(totalResources) || isNaN(initialMiners) || totalResources <= 0 || initialMiners <= 0) {
         alert('Please enter valid positive numbers for Total Resources and Initial Miners.');
@@ -81,36 +118,79 @@ function startGame(event) {
             return response.json();
         })
         .then(data => {
-            updatePageAndWorkers(data);
+            gameStarted = true; // Установете флага за успешно стартирана игра
+            startTimer();
+            updatePageAndWorkers(data.workers);
+            addActionMessage('Game started successfully.');
         })
         .catch(error => {
             console.error('Error starting game:', error);
+            addActionMessage('Failed to start game.');
         });
 }
 
+
 function stopGame() {
-    fetch('/stop', {
+    fetch('/mining-game/stop', {
         method: 'POST'
     })
         .then(response => {
-            if (response.ok) {
-                console.log('Game stopped!');
-            } else {
+            if (!response.ok) {
                 throw new Error('Failed to stop game.');
             }
+            return response.text();
+        })
+        .then(data => {
+            console.log(data);
+            clearInterval(gameTimerInterval);
+            console.log('Timer stopped after game stopped.');
         })
         .catch(error => {
             console.error('Error stopping game:', error);
         });
 }
 
-function addActionMessage(message) {
-    var actionMonitor = document.getElementById('actionMonitor');
-    if (actionMonitor) {
-        var messageElement = document.createElement('p');
-        messageElement.textContent = message;
-        actionMonitor.appendChild(messageElement);
-    } else {
-        console.error('Action monitor element not found.');
-    }
+function startTimer() {
+    var seconds = 0;
+    gameTimerInterval = setInterval(function() {
+        seconds++;
+        var formattedTime = new Date(seconds * 1000).toISOString().substr(11, 8);
+        document.getElementById('gameTimer').innerText = formattedTime;
+    }, 1000);
+}
+
+function addMiner() {
+    fetch('/mining-game/workers/add', {
+        method: 'POST'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to add miner.');
+            }
+            return response.text();
+        })
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error adding miner:', error);
+        });
+}
+
+function removeMiner(workerId) {
+    fetch(`/mining-game/workers/remove/${workerId}`, {
+        method: 'POST'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to remove miner.');
+            }
+            return response.text();
+        })
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error removing miner:', error);
+        });
 }

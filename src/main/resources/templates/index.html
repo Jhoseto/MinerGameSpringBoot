@@ -11,7 +11,7 @@
 <div class="container">
     <h1>Miners Game</h1>
     <div class="game-controls">
-        <form id="startGameForm" onsubmit="startGame(event)">
+        <form id="startGameForm">
             <label for="totalResources">Total Resources in Mine:</label>
             <input type="number" id="totalResources" name="totalResources" min="1" step="1">
 
@@ -21,41 +21,27 @@
             <button type="submit">Start Game</button>
         </form>
 
-        <form th:action="@{/mining-game/stop}" method="post" onsubmit="event.preventDefault(); stopGame();">
+        <form id="stopGameForm">
             <button type="submit">Stop Game</button>
         </form>
 
-        <form th:action="@{/mining-game/workers/add}" method="post">
+        <form id="addMinerForm">
             <button type="submit">Add Miner</button>
         </form>
 
-        <form th:action="@{/mining-game/workers/remove/{workerId}(workerId=${removeMinerId})}" method="post">
+        <form id="removeMinerForm">
             <label for="removeMinerId">Remove Miner ID:</label>
-            <input type="number" id="removeMinerId" name="workerId" min="1" step="1">
+            <input type="number" id="removeMinerId" name="removeMinerId" min="1" step="1">
             <button type="submit">Remove Miner</button>
         </form>
     </div>
-
-    <div th:each="worker : ${workers}" class="miner">
-        <div class="miner-info">
-            <p>Miner ID: <span th:text="${worker.id}"></span></p>
-            <p>Status: <span th:text="${worker.stopped ? 'Inactive' : 'Active'}"></span></p>
-            <p>Total Mined Resources: <span th:text="${worker.totalMinedResources}"></span></p>
-            <p>Total Received Money ($): <span th:text="${worker.totalReceivedMoney}"></span></p>
-        </div>
-        <div class="miner-avatar"></div>
-    </div>
-
     <div class="game-timer">
         <p>Game Timer:</p>
         <div id="gameTimer">00:00:00</div>
     </div>
-    <div id="actionMonitor"></div>
+    <div class="actionMonitor" id="actionMonitor"></div>
+    <div class="miner-info"></div>
 </div>
 <script src="/js/miner.js"></script>
-<script>
-
-</script>
-
 </body>
 </html>

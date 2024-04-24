@@ -1,5 +1,6 @@
 package serezliev.MiningGame.services.implementations;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import serezliev.MiningGame.services.Worker;
 
@@ -19,9 +20,11 @@ public class WorkerImpl implements Worker, Runnable {
     private volatile boolean mineExhausted = false;
     private MiningGameServiceImpl miningGameService;
 
-
-    public WorkerImpl() {
+    // Инжектиране на MiningGameService при създаване на работник
+    @Autowired
+    public WorkerImpl(MiningGameServiceImpl miningGameService) {
         this.id = idGenerator.getAndIncrement();
+        this.miningGameService = miningGameService;
     }
 
 
