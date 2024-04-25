@@ -156,3 +156,16 @@ h1 {
     font-weight: bold;
 }
 
+/* Зелен цвят за Mining... */
+.mining-action {
+    color: #4cae50;
+}
+
+/* Светло син цвят за Resting... */
+.resting-action {
+    color: #84e1fd;
+}
+
+.leftTheMine{
+    color: #ff7821;
+}

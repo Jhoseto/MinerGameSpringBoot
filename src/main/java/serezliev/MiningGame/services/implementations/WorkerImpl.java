@@ -1,7 +1,6 @@
 package serezliev.MiningGame.services.implementations;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import serezliev.MiningGame.services.Worker;
 
@@ -14,21 +13,17 @@ public class WorkerImpl implements Worker, Runnable {
     private static final AtomicInteger idGenerator = new AtomicInteger(0);
     private final int id;
     private int totalMinedResources;
-    private int totalReceivedMoney;
+    private double totalReceivedMoney;
     private int totalWorkingTime;
     private int totalRestingTime;
     private int totalResourcesLeft;
     private String actionMessage;
     private volatile boolean isStopped = false;
-    private volatile boolean mineExhausted = false;
-    private MiningGameServiceImpl miningGameService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final MiningGameServiceImpl miningGameService;
 
 
     @Autowired
-    public WorkerImpl(MiningGameServiceImpl miningGameService,
-                      SimpMessagingTemplate messagingTemplate) {
-        this.messagingTemplate = messagingTemplate;
+    public WorkerImpl(MiningGameServiceImpl miningGameService) {
         this.id = idGenerator.getAndIncrement();
         this.miningGameService = miningGameService;
     }
@@ -36,23 +31,28 @@ public class WorkerImpl implements Worker, Runnable {
     @Override
     public void run() {
         try {
-            while (!mineExhausted && !isStopped) {
+            while (true) {
                 if (miningGameService.getTotalResourcesInMine() <= 0) {
-                    mineExhausted = true;
-                    break;
-                }
-                if (!miningGameService.isPaused()){
+                    miningGameService.finishMining();
+                    setStopped(true);
+                    miningGameService.broadcastWorkers();
+                   break;
+                }else if (!miningGameService.isPaused()){
                     startMining();
                     TimeUnit.SECONDS.sleep(5);
                     stopMining();
+                    paySalary();
                     startResting();
                     TimeUnit.SECONDS.sleep(3);
-                    paySalary();
                     stopResting();
+
+                    miningGameService.broadcastWorkers();
                 }
             }
         } catch (InterruptedException e) {
             System.out.println("Worker " + id + " has left");
+            totalResourcesLeft = miningGameService.getTotalResourcesInMine();
+            miningGameService.broadcastWorkers();
         }
     }
 
@@ -60,22 +60,18 @@ public class WorkerImpl implements Worker, Runnable {
     public int getId() {
         return id;
     }
-
     @Override
     public int getTotalMinedResources() {
         return totalMinedResources;
     }
-
     @Override
-    public int getTotalReceivedMoney() {
+    public double getTotalReceivedMoney() {
         return totalReceivedMoney;
     }
-
     @Override
     public int getTotalWorkingTime() {
         return totalWorkingTime;
     }
-
     @Override
     public int getTotalRestingTime() {
         return totalRestingTime;
@@ -84,16 +80,19 @@ public class WorkerImpl implements Worker, Runnable {
     public int getTotalResourcesLeft() {
         return totalResourcesLeft;
     }
-
+    @Override
+    public int setTotalResourcesLeft(int totalLeftResources) {
+        return totalResourcesLeft;
+    }
     @Override
     public boolean isStopped() {
         return isStopped;
     }
-
     @Override
     public void setStopped(boolean stopped) {
         isStopped = stopped;
     }
+
 
     public String getActionMessage() {
         return actionMessage;
@@ -103,48 +102,52 @@ public class WorkerImpl implements Worker, Runnable {
         this.actionMessage = actionMessage;
     }
 
+
     @Override
     public void startMining() {
-        System.out.println("Worker " + id + " is mining...");
-        totalMinedResources += 10;
-        totalWorkingTime += 5;
-        miningGameService.setTotalResourcesInMine(miningGameService.getTotalResourcesInMine()-10);
+        System.out.println(" Worker " + id + "Mining...");
+        setActionMessage("Mining...");
         totalResourcesLeft = miningGameService.getTotalResourcesInMine();
-        setActionMessage("Worker " + id + " is mining...");
         miningGameService.broadcastWorkers();
     }
 
     @Override
     public void stopMining() {
+
+        totalWorkingTime += 5;
+        totalMinedResources += 10;
+        miningGameService.setTotalResourcesInMine(miningGameService.getTotalResourcesInMine()-10);
+        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         miningGameService.broadcastWorkers();
     }
 
     @Override
     public void startResting() {
-        System.out.println("Worker " + id + " is resting...");
-        totalRestingTime += 3;
-        messagingTemplate.convertAndSend("/topic/workers", "Worker " + id + " is resting...");
-        setActionMessage( "Worker " + id + " is resting...");
+        System.out.println(" Worker " + id + " Resting...");
+        setActionMessage( "Resting...");
+        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         miningGameService.broadcastWorkers();
 
     }
 
     @Override
     public void stopResting() {
+        totalRestingTime += 3;
+        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         miningGameService.broadcastWorkers();
     }
 
     @Override
     public void stopWorker() {
         isStopped = true;
+        setActionMessage("Left the mine...");
     }
 
     @Override
     public void paySalary() {
-        int salary = 10 / 2; // 2.5 $ for every 5 sec on work
+        double salary = 2.5;  // 2.5 $ for every 5 sec on work
         totalReceivedMoney += salary;
         System.out.println("Worker " + id + " has received $" + salary + " for total " + totalMinedResources + " mined resources");
-        setActionMessage("Worker " + id + " has received $" + salary + " for total " + totalMinedResources + " mined resources");
         miningGameService.broadcastWorkers();
     }
 

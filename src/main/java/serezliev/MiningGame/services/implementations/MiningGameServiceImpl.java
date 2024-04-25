@@ -17,15 +17,17 @@ public class MiningGameServiceImpl implements MiningGameService {
 
     private static final int MAX_MINE_SIZE = 10;
     private static ExecutorService executor = Executors.newFixedThreadPool(MAX_MINE_SIZE);
-    private int totalResourcesInMine = 0;
+    private volatile int totalResourcesInMine = 0;
     private final List<Worker> workers = new ArrayList<>();
     private final SimpMessagingTemplate messagingTemplate;
     private volatile boolean paused = false;
 
 
+
     @Autowired
     public MiningGameServiceImpl(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
+
     }
 
     @Override
@@ -33,12 +35,14 @@ public class MiningGameServiceImpl implements MiningGameService {
         return workers;
     }
 
+
     @Override
     public void addWorker() {
         if (workers.size() < MAX_MINE_SIZE) {
-            Worker newWorker = new WorkerImpl(this,messagingTemplate);
+            Worker newWorker = new WorkerImpl(this);
             workers.add(newWorker);
             executor.submit((Runnable) newWorker);
+            broadcastWorkers();
         }
     }
 
@@ -69,7 +73,7 @@ public class MiningGameServiceImpl implements MiningGameService {
 
     @Override
     public void startGame(int initialMineResources, int initialWorkers) {
-        this.totalResourcesInMine = initialMineResources;
+        setTotalResourcesInMine(initialMineResources);
         if (paused) {
             paused = false; // Ако играта е паузирана, я продължаваме
         }else {
@@ -92,6 +96,14 @@ public class MiningGameServiceImpl implements MiningGameService {
         broadcastWorkers();
     }
 
+    @Override
+    public void finishMining() {
+        executor.shutdownNow();
+        workers.forEach(Worker::stopWorker);
+        broadcastWorkers();
+
+    }
+
     public int getTotalResourcesInMine() {
         return totalResourcesInMine;
     }
@@ -100,6 +112,7 @@ public class MiningGameServiceImpl implements MiningGameService {
         this.totalResourcesInMine = totalResourcesInMine;
         System.out.println(totalResourcesInMine+" Left");
     }
+
 
     public void broadcastWorkers() {
         List<Worker> workers = getWorkers();

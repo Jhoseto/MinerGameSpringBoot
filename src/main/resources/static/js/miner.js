@@ -58,6 +58,8 @@ function updatePageAndWorkers(data) {
         var { id, stopped, totalMinedResources, totalResourcesLeft, totalReceivedMoney, actionMessage } = worker;
         var status = stopped ? 'Inactive' : 'Active';
 
+
+
         // Проверка дали панелът за този работник вече съществува
         var existingPanel = document.getElementById(`workerPanel-${id}`);
         if (!existingPanel) {
@@ -72,6 +74,15 @@ function updatePageAndWorkers(data) {
 
             workerPanel.appendChild(minerInfoDiv);
 
+            // Определете цвят на основата на actionMessage
+            var actionColorClass = '';
+            if (actionMessage === 'Mining...') {
+                actionColorClass = 'mining-action';
+            } else if (actionMessage === 'Resting...') {
+                actionColorClass = 'resting-action';
+            } else if (actionMessage === 'Left the mine...'){
+                actionColorClass = 'leftTheMine';
+            }
             // Създаване на информация за работника
             var workerInfoDiv = document.createElement('div');
             workerInfoDiv.className = 'worker-info';
@@ -80,30 +91,43 @@ function updatePageAndWorkers(data) {
                 <p>Status: ${status}</p>
                 <p>Total Mined Resources: ${totalMinedResources}</p>
                 <p>Total Received Money ($): ${totalReceivedMoney}</p>
-                <p>Action: ${actionMessage}</p>    
+                <p>Action: <span class="${actionColorClass}">${actionMessage}</span></p>
             `;
 
             workerPanel.appendChild(workerInfoDiv);
             workerPanelsContainer.appendChild(workerPanel);
         } else {
+            // Определете цвят на основата на actionMessage
+            if (actionMessage === 'Mining...') {
+                actionColorClass = 'mining-action'; // Зелен цвят за Mining...
+            } else if (actionMessage === 'Resting...') {
+                actionColorClass = 'resting-action'; // Светло син цвят за Resting...
+            } else if (actionMessage === 'Left the mine...'){
+                actionColorClass = 'leftTheMine';
+            }
             // Актуализация на съществуващия панел с новата информация
             existingPanel.querySelector('.worker-info').innerHTML = `
                 <p>Miner ID: ${id}</p>
                 <p>Status: ${status}</p>
                 <p>Total Mined Resources: ${totalMinedResources}</p>
                 <p>Total Received Money ($): ${totalReceivedMoney}</p>
-                <p>Action Message: ${actionMessage}</p> 
+                <p>Action: <span class="${actionColorClass}">${actionMessage}</span></p>
             `;
         }
+
         // Актуализиране на оставащите ресурси
         if (leftResourcesElement) {
-            leftResourcesElement.textContent = `Total Resources Left: ${totalResourcesLeft}`;
+            // Проверка за достигане на 0 оставащи ресурси и спиране на играта
+            if (totalResourcesLeft < 0) {
+                totalResourcesLeft=0;
+
+                stopGame()
+                addActionMessage("Mining complete !!!")
+            }
+            leftResourcesElement.textContent = `Total Resources Left ==> ${totalResourcesLeft}`;
         }
-        addActionMessage(actionMessage);
     });
 }
-
-
 
 function addActionMessage(message) {
     var actionMonitor = document.getElementById('actionMonitor');
@@ -114,16 +138,15 @@ function addActionMessage(message) {
     var messageElement = document.createElement('p');
     messageElement.textContent = message;
     actionMonitor.appendChild(messageElement);
-    // Добавете новият <br> елемент след добавянето на съобщението
-    var newlineElement = document.createElement('br');
-    actionMonitor.appendChild(newlineElement);
-    // Променете скролирането на actionMonitor, за да бъде на последния ред
+
     actionMonitor.scrollTop = actionMonitor.scrollHeight;
 }
 
 function startGame() {
     var totalResources = parseInt(document.getElementById('totalResources').value);
     var initialMiners = parseInt(document.getElementById('initialMiners').value);
+    var leftResourcesElement = document.getElementById('totalResourcesLeft');
+
 
     if (isNaN(totalResources) || isNaN(initialMiners) || totalResources <= 0 || initialMiners <= 0) {
         alert('Please enter valid positive numbers for Total Resources and Initial Miners.');
@@ -150,6 +173,7 @@ function startGame() {
             gameStarted = true; // Установете флага за успешно стартирана игра
             startTimer();
             updatePageAndWorkers(data.workers);
+            leftResourcesElement.textContent = `Total Resources Left ==> ${totalResources}`;
             addActionMessage('Game started successfully.');
         })
         .catch(error => {
@@ -172,6 +196,7 @@ function stopGame() {
         .then(data => {
             console.log(data);
             clearInterval(gameTimerInterval);
+            addActionMessage("Mining is stopped... ")
             console.log('Timer stopped after game stopped.');
         })
         .catch(error => {
@@ -233,6 +258,7 @@ function addMiner() {
         })
         .then(data => {
             console.log(data);
+            addActionMessage("You added a new Miner...")
         })
         .catch(error => {
             console.error('Error adding miner:', error);
@@ -262,6 +288,7 @@ function removeMiner() {
         })
         .then(data => {
             console.log(data);
+            addActionMessage('You removed Miner '+workerId+' from working process...')
         })
         .catch(error => {
             addActionMessage('Error removing miner ' + workerId);

@@ -6,13 +6,15 @@ public interface Worker {
 
     int getTotalMinedResources();
 
-    int getTotalReceivedMoney();
+    double getTotalReceivedMoney();
 
     int getTotalWorkingTime();
 
     int getTotalRestingTime();
 
     int getTotalResourcesLeft();
+
+    int setTotalResourcesLeft(int totalLeftResources);
 
     boolean isStopped();
 
