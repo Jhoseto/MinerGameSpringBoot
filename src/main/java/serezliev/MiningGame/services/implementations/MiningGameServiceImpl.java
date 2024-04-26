@@ -76,14 +76,9 @@ public class MiningGameServiceImpl implements MiningGameService {
         setTotalResourcesInMine(initialMineResources);
         if (paused) {
             paused = false; // Ако играта е паузирана, я продължаваме
-            initialWorkers = workers.size();
-            for (int i = 1; i <= initialWorkers; i++) {
-                addWorker();
-            }
-        }else {
-            for (int i = 1; i <= initialWorkers; i++) {
-                addWorker();
-            }
+        }
+        for (int i = 1; i <= initialWorkers; i++) {
+            addWorker();
         }
     }
 

@@ -12,22 +12,22 @@
     <h1>Miners Game</h1>
     <div class="game-controls">
         <form id="startGameForm">
-            <label for="totalResources">Total Resources in Mine:</label>
-            <input type="number" id="totalResources" name="totalResources" min="1" step="1">
+            <label  for="totalResources">Total Resources in Mine:</label>
+            <input  type="number" id="totalResources" name="totalResources" min="1" step="1">
 
             <label for="initialMiners">Initial Number of Miners:</label>
-            <input type="number" id="initialMiners" name="initialMiners" min="1" max="10" step="1">
+            <input type="number" id="initialMiners" name="initialMiners"  max="10" step="1">
 
-            <button id="startGameButton" class="game-button disabled" onclick="startGame()">Start Mining</button>
+            <button id="startGameButton" class="game-button disabled" >Start/Resume Mining</button>
         </form>
 
         <form id="stopGameForm">
-            <button id="stopGameButton" class="game-button disabled" onclick="stopGame()">Stop Mining</button>
+            <button id="stopGameButton" class="game-button disabled" >Stop Mining</button>
             <button id="restartGameButton">Restart Game</button>
         </form>
 
         <form id="addMinerForm">
-            <button type="submit">Add Miner</button>
+            <button id="addMinerButton" type="submit" class="game-button disabled">Add Miner</button>
         </form>
 
         <form id="removeMinerForm">

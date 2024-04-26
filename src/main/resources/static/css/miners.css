@@ -51,6 +51,17 @@ h1 {
 .game-controls form input[type="number"] {
     margin-right: 10px; /* Отстояние след входните полета */
 }
+.game-controls form input[type="number"].active-button {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.game-controls form input[type="number"].inactive-button {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 
 /* Стилове за бутоните във формите */
 
@@ -69,6 +80,8 @@ h1 {
 .game-controls form button:hover {
     background-color: #45a049;
 }
+
+
 
 /* Стилове за таймера на играта */
 

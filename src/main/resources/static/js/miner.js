@@ -1,9 +1,12 @@
 var stompClient = null;
 var gameTimerInterval = null;
 var totalSeconds = 0; // Общ брой изминали секунди
-enableButton('startGameButton');
-disableButton('stopGameButton');
+
 document.addEventListener('DOMContentLoaded', function() {
+
+    enableButton('startGameButton');
+    disableButton('stopGameButton');
+
     connect();
 
     document.getElementById('startGameForm').addEventListener('submit', function(event) {
@@ -146,16 +149,15 @@ function addActionMessage(message) {
 
 function startGame() {
     var totalResources = parseInt(document.getElementById('totalResources').value);
-    var initialMiners = parseInt(document.getElementById('initialMiners').value);
     var leftResourcesElement = document.getElementById('totalResourcesLeft');
-
+    var initialMiners = parseInt(document.getElementById('initialMiners').value);
 
     if (leftResourcesElement) {
 
         leftResourcesElement.textContent = `Total Resources Left ==> ${totalResources}`;
     }
-    if (isNaN(totalResources) || isNaN(initialMiners) || totalResources <= 0 || initialMiners <= 0) {
-        alert('Please enter valid positive numbers for Total Resources and Initial Miners.');
+    if (isNaN(totalResources) || totalResources <= 0 ) {
+        alert('Please enter valid positive numbers for Total Resources ');
         return;
     }
 
@@ -182,8 +184,11 @@ function startGame() {
             // updatePageAndWorkers(data.workers);
             addActionMessage('Game started successfully.');
 
+            disableInput('totalResources');
+            disableInput('initialMiners');
             disableButton('startGameButton');
             enableButton('stopGameButton');
+            enableButton('addMinerButton')
         })
         .catch(error => {
             console.error('Error starting game:', error);
@@ -193,6 +198,8 @@ function startGame() {
 
 
 function stopGame() {
+    var initialMiners = parseInt(document.getElementById('initialMiners').value);
+
     fetch('/mining-game/stop', {
         method: 'POST'
     })
@@ -210,6 +217,10 @@ function stopGame() {
 
             enableButton('startGameButton');
             disableButton('stopGameButton');
+            disableButton('addMinerButton')
+
+            // Промяна на стойността на initialMiners до 0
+            document.getElementById('initialMiners').value = 0;
         })
         .catch(error => {
             console.error('Error stopping game:', error);
@@ -321,5 +332,23 @@ function disableButton(buttonId) {
     if (button) {
         button.classList.remove('active-button');
         button.classList.add('inactive-button');
+    }
+}
+
+function enableInput(inputId) {
+    var input = document.getElementById(inputId);
+    if (input) {
+        input.classList.remove('inactive-button');
+        input.classList.add('active-button');
+        input.removeAttribute('disabled'); // Премахва атрибута disabled
+    }
+}
+
+function disableInput(inputId) {
+    var input = document.getElementById(inputId);
+    if (input) {
+        input.classList.remove('active-button');
+        input.classList.add('inactive-button');
+        input.setAttribute('disabled', true); // Добавя атрибута disabled
     }
 }
