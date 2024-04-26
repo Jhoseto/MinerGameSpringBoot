@@ -51,7 +51,6 @@ public class MiningGameController {
         int initialWorkers = gameParams.getInitialWorkers();
 
         miningGameService.startGame(initialMineResources, initialWorkers);
-        miningGameService.broadcastWorkers();
 
         List<Worker> workers = miningGameService.getWorkers();
 

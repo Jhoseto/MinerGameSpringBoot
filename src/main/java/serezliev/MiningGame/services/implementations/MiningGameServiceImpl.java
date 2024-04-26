@@ -21,6 +21,7 @@ public class MiningGameServiceImpl implements MiningGameService {
     private final List<Worker> workers = new ArrayList<>();
     private final SimpMessagingTemplate messagingTemplate;
     private volatile boolean paused = false;
+    private volatile boolean isFinish = false;
 
 
 
@@ -42,7 +43,6 @@ public class MiningGameServiceImpl implements MiningGameService {
             Worker newWorker = new WorkerImpl(this);
             workers.add(newWorker);
             executor.submit((Runnable) newWorker);
-            broadcastWorkers();
         }
     }
 
@@ -76,12 +76,17 @@ public class MiningGameServiceImpl implements MiningGameService {
         setTotalResourcesInMine(initialMineResources);
         if (paused) {
             paused = false; // Ако играта е паузирана, я продължаваме
+            initialWorkers = workers.size();
+            for (int i = 1; i <= initialWorkers; i++) {
+                addWorker();
+            }
         }else {
             for (int i = 1; i <= initialWorkers; i++) {
                 addWorker();
             }
         }
     }
+
 
     @Override
     public void stopGame() {
@@ -98,6 +103,7 @@ public class MiningGameServiceImpl implements MiningGameService {
 
     @Override
     public void finishMining() {
+        setFinish(true);
         executor.shutdownNow();
         workers.forEach(Worker::stopWorker);
         broadcastWorkers();
@@ -113,8 +119,15 @@ public class MiningGameServiceImpl implements MiningGameService {
         System.out.println(totalResourcesInMine+" Left");
     }
 
+    public boolean isFinish() {
+        return isFinish;
+    }
 
-    public void broadcastWorkers() {
+    public void setFinish(boolean finish) {
+        isFinish = finish;
+    }
+
+    public synchronized void broadcastWorkers() {
         List<Worker> workers = getWorkers();
         messagingTemplate.convertAndSend("/topic/workers", workers);
     }

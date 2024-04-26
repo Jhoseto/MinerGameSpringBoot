@@ -1,7 +1,8 @@
 var stompClient = null;
 var gameTimerInterval = null;
 var totalSeconds = 0; // Общ брой изминали секунди
-
+enableButton('startGameButton');
+disableButton('stopGameButton');
 document.addEventListener('DOMContentLoaded', function() {
     connect();
 
@@ -117,14 +118,15 @@ function updatePageAndWorkers(data) {
 
         // Актуализиране на оставащите ресурси
         if (leftResourcesElement) {
-            // Проверка за достигане на 0 оставащи ресурси и спиране на играта
-            if (totalResourcesLeft < 0) {
-                totalResourcesLeft=0;
-
-                stopGame()
-                addActionMessage("Mining complete !!!")
-            }
             leftResourcesElement.textContent = `Total Resources Left ==> ${totalResourcesLeft}`;
+        }
+        // Проверка за достигане на 0 оставащи ресурси и спиране на играта
+        if (totalResourcesLeft <= 0) {
+            totalResourcesLeft=0;
+
+            stopGame()
+            addActionMessage("Mining complete !!!")
+            stop()
         }
     });
 }
@@ -148,10 +150,15 @@ function startGame() {
     var leftResourcesElement = document.getElementById('totalResourcesLeft');
 
 
+    if (leftResourcesElement) {
+
+        leftResourcesElement.textContent = `Total Resources Left ==> ${totalResources}`;
+    }
     if (isNaN(totalResources) || isNaN(initialMiners) || totalResources <= 0 || initialMiners <= 0) {
         alert('Please enter valid positive numbers for Total Resources and Initial Miners.');
         return;
     }
+
 
     fetch('/mining-game/start', {
         method: 'POST',
@@ -172,9 +179,11 @@ function startGame() {
         .then(data => {
             gameStarted = true; // Установете флага за успешно стартирана игра
             startTimer();
-            updatePageAndWorkers(data.workers);
-            leftResourcesElement.textContent = `Total Resources Left ==> ${totalResources}`;
+            // updatePageAndWorkers(data.workers);
             addActionMessage('Game started successfully.');
+
+            disableButton('startGameButton');
+            enableButton('stopGameButton');
         })
         .catch(error => {
             console.error('Error starting game:', error);
@@ -198,6 +207,9 @@ function stopGame() {
             clearInterval(gameTimerInterval);
             addActionMessage("Mining is stopped... ")
             console.log('Timer stopped after game stopped.');
+
+            enableButton('startGameButton');
+            disableButton('stopGameButton');
         })
         .catch(error => {
             console.error('Error stopping game:', error);
@@ -294,4 +306,20 @@ function removeMiner() {
             addActionMessage('Error removing miner ' + workerId);
             console.error('Error removing miner:', error);
         });
+}
+
+function enableButton(buttonId) {
+    var button = document.getElementById(buttonId);
+    if (button) {
+        button.classList.remove('inactive-button');
+        button.classList.add('active-button');
+    }
+}
+
+function disableButton(buttonId) {
+    var button = document.getElementById(buttonId);
+    if (button) {
+        button.classList.remove('active-button');
+        button.classList.add('inactive-button');
+    }
 }

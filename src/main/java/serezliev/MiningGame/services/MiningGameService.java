@@ -25,6 +25,8 @@ public interface MiningGameService {
 
     boolean isPaused();
 
+    void setFinish(boolean finish);
+
     void pauseGame();
 
     void resumeGame();

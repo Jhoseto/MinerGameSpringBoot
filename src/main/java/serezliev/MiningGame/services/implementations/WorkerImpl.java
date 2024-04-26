@@ -37,7 +37,8 @@ public class WorkerImpl implements Worker, Runnable {
                     setStopped(true);
                     miningGameService.broadcastWorkers();
                    break;
-                }else if (!miningGameService.isPaused()){
+
+                }else if (!miningGameService.isPaused() && !isStopped){
                     startMining();
                     TimeUnit.SECONDS.sleep(5);
                     stopMining();
@@ -105,19 +106,20 @@ public class WorkerImpl implements Worker, Runnable {
 
     @Override
     public void startMining() {
+        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         System.out.println(" Worker " + id + "Mining...");
         setActionMessage("Mining...");
-        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         miningGameService.broadcastWorkers();
     }
 
     @Override
     public void stopMining() {
-
-        totalWorkingTime += 5;
-        totalMinedResources += 10;
         miningGameService.setTotalResourcesInMine(miningGameService.getTotalResourcesInMine()-10);
         totalResourcesLeft = miningGameService.getTotalResourcesInMine();
+        if (!(totalResourcesLeft <=0)){
+            totalWorkingTime += 5;
+            totalMinedResources += 10;
+        }
         miningGameService.broadcastWorkers();
     }
 
@@ -125,7 +127,6 @@ public class WorkerImpl implements Worker, Runnable {
     public void startResting() {
         System.out.println(" Worker " + id + " Resting...");
         setActionMessage( "Resting...");
-        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         miningGameService.broadcastWorkers();
 
     }
@@ -133,7 +134,6 @@ public class WorkerImpl implements Worker, Runnable {
     @Override
     public void stopResting() {
         totalRestingTime += 3;
-        totalResourcesLeft = miningGameService.getTotalResourcesInMine();
         miningGameService.broadcastWorkers();
     }
 
@@ -141,6 +141,7 @@ public class WorkerImpl implements Worker, Runnable {
     public void stopWorker() {
         isStopped = true;
         setActionMessage("Left the mine...");
+        miningGameService.broadcastWorkers();
     }
 
     @Override
