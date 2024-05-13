@@ -43,6 +43,7 @@ public class MiningGameServiceImpl implements MiningGameService {
             Worker newWorker = new WorkerImpl(this);
             workers.add(newWorker);
             executor.submit((Runnable) newWorker);
+
         }
     }
 
@@ -85,6 +86,7 @@ public class MiningGameServiceImpl implements MiningGameService {
 
     @Override
     public void stopGame() {
+
         pauseGame();
     }
 
@@ -112,6 +114,7 @@ public class MiningGameServiceImpl implements MiningGameService {
     public void setTotalResourcesInMine(int totalResourcesInMine) {
         this.totalResourcesInMine = totalResourcesInMine;
         System.out.println(totalResourcesInMine+" Left");
+        broadcastWorkers();
     }
 
     public boolean isFinish() {
@@ -136,6 +139,8 @@ public class MiningGameServiceImpl implements MiningGameService {
     public void pauseGame() {
         paused = true;
     }
+
+
 
     @Override
     public void resumeGame() {

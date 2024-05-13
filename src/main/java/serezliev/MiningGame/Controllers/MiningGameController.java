@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/mining-game")
+@RequestMapping("mining-game")
 public class MiningGameController {
 
     private final MiningGameService miningGameService;
@@ -65,7 +65,7 @@ public class MiningGameController {
     @PostMapping("/stop")
     public ResponseEntity<String> stopGame() {
         miningGameService.stopGame();
-        miningGameService.broadcastWorkers();
+
         return ResponseEntity.ok("Game stopped");
     }
 

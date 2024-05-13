@@ -1,7 +1,7 @@
 var stompClient = null;
 var gameTimerInterval = null;
 var totalSeconds = 0; // Общ брой изминали секунди
-
+let gameInProgress;
 document.addEventListener('DOMContentLoaded', function() {
 
     enableButton('startGameButton');
@@ -126,10 +126,8 @@ function updatePageAndWorkers(data) {
         // Проверка за достигане на 0 оставащи ресурси и спиране на играта
         if (totalResourcesLeft <= 0) {
             totalResourcesLeft=0;
-
+            gameInProgress = false;
             stopGame()
-            addActionMessage("Mining complete !!!")
-            stop()
         }
     });
 }
@@ -162,7 +160,7 @@ function startGame() {
     }
 
 
-    fetch('/mining-game/start', {
+    fetch('mining-game/start', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -179,9 +177,9 @@ function startGame() {
             return response.json();
         })
         .then(data => {
-            gameStarted = true; // Установете флага за успешно стартирана игра
+            gameInProgress = true;
             startTimer();
-            // updatePageAndWorkers(data.workers);
+
             addActionMessage('Game started successfully.');
 
             disableInput('totalResources');
@@ -189,6 +187,8 @@ function startGame() {
             disableButton('startGameButton');
             enableButton('stopGameButton');
             enableButton('addMinerButton')
+
+            //updatePageAndWorkers(data.async);
         })
         .catch(error => {
             console.error('Error starting game:', error);
@@ -200,7 +200,7 @@ function startGame() {
 function stopGame() {
     var initialMiners = parseInt(document.getElementById('initialMiners').value);
 
-    fetch('/mining-game/stop', {
+    fetch('mining-game/stop', {
         method: 'POST'
     })
         .then(response => {
@@ -212,6 +212,7 @@ function stopGame() {
         .then(data => {
             console.log(data);
             clearInterval(gameTimerInterval);
+
             addActionMessage("Mining is stopped... ")
             console.log('Timer stopped after game stopped.');
 
@@ -221,6 +222,7 @@ function stopGame() {
 
             // Промяна на стойността на initialMiners до 0
             document.getElementById('initialMiners').value = 0;
+            //updatePageAndWorkers(data);
         })
         .catch(error => {
             console.error('Error stopping game:', error);
@@ -236,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function restartGame() {
     // Изпращане на заявка за рестартиране на играта
-    fetch('/mining-game/restart', {
+    fetch('mining-game/restart', {
         method: 'POST'
     })
         .then(response => {
@@ -270,7 +272,7 @@ function updateTimerDisplay() {
 
 
 function addMiner() {
-    fetch('/mining-game/workers/add', {
+    fetch('mining-game/workers/add', {
         method: 'POST'
     })
         .then(response => {
@@ -298,7 +300,7 @@ function removeMiner() {
     }
 
     // Изпращане на заявка за премахване на работник с даден ID
-    fetch(`/mining-game/workers/remove/${workerId}`, {
+    fetch(`mining-game/workers/remove/${workerId}`, {
         method: 'POST'
     })
         .then(response => {
@@ -340,7 +342,7 @@ function enableInput(inputId) {
     if (input) {
         input.classList.remove('inactive-button');
         input.classList.add('active-button');
-        input.removeAttribute('disabled'); // Премахва атрибута disabled
+        input.removeAttribute('disabled');
     }
 }
 
@@ -349,6 +351,6 @@ function disableInput(inputId) {
     if (input) {
         input.classList.remove('active-button');
         input.classList.add('inactive-button');
-        input.setAttribute('disabled', true); // Добавя атрибута disabled
+        input.setAttribute('disabled', true);
     }
 }

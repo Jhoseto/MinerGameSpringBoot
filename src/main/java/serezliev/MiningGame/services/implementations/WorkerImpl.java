@@ -35,7 +35,7 @@ public class WorkerImpl implements Worker, Runnable {
                 if (miningGameService.getTotalResourcesInMine() <= 0) {
                     miningGameService.finishMining();
                     setStopped(true);
-                    miningGameService.broadcastWorkers();
+
                    break;
 
                 }else if (!miningGameService.isPaused() && !isStopped){
@@ -116,7 +116,7 @@ public class WorkerImpl implements Worker, Runnable {
     public void stopMining() {
         miningGameService.setTotalResourcesInMine(miningGameService.getTotalResourcesInMine()-10);
         totalResourcesLeft = miningGameService.getTotalResourcesInMine();
-        if (!(totalResourcesLeft <=0)){
+        if (totalResourcesLeft >= 0){
             totalWorkingTime += 5;
             totalMinedResources += 10;
         }
@@ -148,7 +148,7 @@ public class WorkerImpl implements Worker, Runnable {
     public void paySalary() {
         double salary = 2.5;  // 2.5 $ for every 5 sec on work
         totalReceivedMoney += salary;
-        System.out.println("Worker " + id + " has received $" + salary + " for total " + totalMinedResources + " mined resources");
+        System.out.println("Worker " + id + " has received $" + totalReceivedMoney + " for total " + totalMinedResources + " mined resources");
         miningGameService.broadcastWorkers();
     }
 
